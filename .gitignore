@@ -1,0 +1,59 @@
+# ── Dependencies ──────────────────────────────────────────────────────────────
+node_modules/
+package-lock.json
+
+# ── Environment / Secrets ─────────────────────────────────────────────────────
+.env
+.env.local
+.env.production
+.env.*
+!.env.example
+
+# ── Sessions (WhatsApp auth — NEVER commit) ───────────────────────────────────
+data/sessions/
+data/creds.json
+
+# ── All runtime data JSON files ───────────────────────────────────────────────
+data/*.json
+!data/.gitkeep
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+data/logs/
+*.log
+pm2-*.log
+redis.log
+
+# ── Temp / cache / media ──────────────────────────────────────────────────────
+data/temp_media/
+data/sticker_cache/
+data/yt_cache/
+data/menu-songs/
+
+# ── Media files ───────────────────────────────────────────────────────────────
+*.mp3
+*.mp4
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+*.webm
+
+# ── OS / IDE ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ── PM2 ecosystem (contains server-specific config) ──────────────────────────
+ecosystem.config.js
+
+# ── Backups ───────────────────────────────────────────────────────────────────
+*.backup.*
+*.bak
+*.tar.gz
+
+# ── Markdown docs (keep repo clean) ──────────────────────────────────────────
+*.md
+!README.md
+data/node-id.txt
