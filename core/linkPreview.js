@@ -417,16 +417,17 @@ async function normalizeThumbnailBuffer(input) {
         const inputHeight = metadata.height || 0;
         const maxInputDim = Math.max(inputWidth, inputHeight);
         
-        // Small images (like WhatsApp profile pics ~640px) need upscaling with sharpening
-        const needsUpscaling = maxInputDim < 1280;
+        // Only upscale if image is VERY small (<800px), otherwise preserve quality
+        const needsUpscaling = maxInputDim < 800;
+        const targetSize = needsUpscaling ? 1280 : MAX_THUMB_DIMENSION;
         
         const attempts = [
-            { size: MAX_THUMB_DIMENSION, quality: 92, sharpen: needsUpscaling ? 1.5 : 0 },
-            { size: MAX_THUMB_DIMENSION, quality: 88, sharpen: needsUpscaling ? 1.2 : 0 },
-            { size: 1600, quality: 85, sharpen: needsUpscaling ? 1.0 : 0 },
-            { size: 1280, quality: 82, sharpen: needsUpscaling ? 0.8 : 0 },
-            { size: 1080, quality: 78, sharpen: 0 },
-            { size: 900,  quality: 75, sharpen: 0 },
+            { size: targetSize, quality: 95, sharpen: needsUpscaling ? 0.8 : 0 },
+            { size: targetSize, quality: 92, sharpen: needsUpscaling ? 0.6 : 0 },
+            { size: 1600, quality: 90, sharpen: 0 },
+            { size: 1280, quality: 88, sharpen: 0 },
+            { size: 1080, quality: 85, sharpen: 0 },
+            { size: 900,  quality: 80, sharpen: 0 },
         ];
         
         let resized = null;
@@ -434,16 +435,17 @@ async function normalizeThumbnailBuffer(input) {
             let pipeline = sharp(buf)
                 .resize(size, size, { 
                     fit: 'inside', 
-                    withoutEnlargement: false,
-                    kernel: needsUpscaling ? 'lanczos3' : 'lanczos2'
+                    withoutEnlargement: !needsUpscaling,  // Only upscale if needed
+                    kernel: 'lanczos3'  // Best quality interpolation
                 });
             
+            // Light sharpening only for small upscaled images
             if (sharpen > 0) {
-                pipeline = pipeline.sharpen({ sigma: sharpen });
+                pipeline = pipeline.sharpen({ sigma: sharpen, m1: 0.5, m2: 3 });
             }
             
             resized = await pipeline
-                .jpeg({ quality, progressive: false, mozjpeg: true })
+                .jpeg({ quality, progressive: false, mozjpeg: true, optimizeCoding: true })
                 .toBuffer();
                 
             if (resized.length <= MAX_THUMB_BYTES) return resized;

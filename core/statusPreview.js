@@ -158,8 +158,16 @@ async function _fromWaInvite(sock, url) {
         if (!info?.id) return null;
         let thumb = null;
         try {
-            const ppUrl = await sock.profilePictureUrl(info.id, 'image');
-            if (ppUrl) thumb = await fetchImageBuffer(ppUrl);
+            // Try to get highest quality profile picture available
+            // 'image' gives higher res than 'preview'
+            const ppUrl = await sock.profilePictureUrl(info.id, 'image').catch(() => 
+                sock.profilePictureUrl(info.id, 'preview')
+            );
+            if (ppUrl) {
+                thumb = await fetchImageBuffer(ppUrl);
+                // If thumbnail is still small/blurry, that's the best WA has
+                logger.debug(`[StatusPreview] Fetched WA group pic: ${thumb?.length || 0} bytes`);
+            }
         } catch {}
         const members = info.size || info.participants?.length || 0;
         return {
